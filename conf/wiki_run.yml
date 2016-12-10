@@ -1,0 +1,12 @@
+- name: Running Enviornment Standby
+  hosts: spark_group 
+  tasks:
+
+   - name: synchronize application jar
+     synchronize: src="/usr/share/hisarack-wikipedia/mlib_word2vec/target/scala-2.10/Wikipedia Clustering-assembly-1.0.jar" dest=/usr/share/workspace/app.jar
+
+   - name: synchornize wikipedia plaintext
+     synchronize: src=/usr/share/hisarack-wikipedia/twwiki.txt dest=/usr/share/workspace/twwiki.txt
+
+   - name: synchornize jieba dictionary
+     synchronize: src=/usr/share/hisarack-wikipedia/dict.txt.big dest=/usr/share/workspace/dict.txt.big

@@ -1,0 +1,7 @@
+- name: Running Enviornment Standby
+  hosts: spark_group 
+  tasks:
+
+   - name: synchronize application jar
+     synchronize: src="/usr/share/hisarack-movielens/target/scala-2.10/MovieALS-assembly-1.0.jar" dest=/usr/share/workspace/app.jar
+

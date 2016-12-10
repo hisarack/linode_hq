@@ -1,0 +1,61 @@
+- name: Deploy spark slaves
+  hosts: spark_group
+  #accelerate: true
+  tasks:
+
+   - name: add java repository
+     apt_repository: repo='ppa:webupd8team/java'
+
+   - name: update apt
+     apt: update_cache=yes
+
+   - name: Accept Java 8 Licence
+     shell: echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | tee /etc/oracle-java-8-licence-acceptance | /usr/bin/debconf-set-selections
+     args:
+        creates: /etc/oracle-java-8-licence-acceptance
+
+   - name: Install Oracle Java 8
+     apt: name={{item}} state=latest
+     with_items:
+        - oracle-java8-installer
+        - ca-certificates
+        - oracle-java8-set-default
+
+   - name: download scala
+     get_url: url=http://www.scala-lang.org/files/archive/scala-2.11.7.deb dest=/tmp/
+
+   - name: install scala deb
+     apt: deb=/tmp/scala-2.11.7.deb
+
+   - name: update apt
+     apt: update_cache=yes
+
+   - name: install scala
+     apt: name=scala state=present
+
+   - name: install LZ4 decompression tool
+     apt: name=liblz4-tool state=present
+
+   - name: create workspace
+     file: path=/usr/share/workspace state=directory mode=0755
+
+   #- name: copy and untar spark.tar.gz
+   #  unarchive: src=/usr/share/hisarack-hq/spark-min.tgz dest=/usr/share/workspace/ copy=yes
+
+   - name: delete spark-min.lz4
+     file: path=/usr/share/workspace/spark-min.lz4 state=absent
+
+   - name: delete spark-min.tar
+     file: path=/usr/share/workspace/spark-min.tar state=absent
+
+   - name: copy spark-min.lz4
+     synchronize: src=/usr/share/hisarack-hq/spark-min.lz4 dest=/usr/share/workspace/
+    
+   - name: decompress spark-min.lz4
+     command: lz4 -d /usr/share/workspace/spark-min.lz4  /usr/share/workspace/spark-min.tar
+
+   - name: untar spark-min.tar
+     unarchive: src=/usr/share/workspace/spark-min.tar dest=/usr/share/workspace/ copy=no
+
+   - name: execute spark slave
+     command: /usr/share/workspace/spark-1.5.2/sbin/start-slave.sh spark://69.164.193.25:7077
